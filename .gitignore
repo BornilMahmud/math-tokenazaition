@@ -1,0 +1,8 @@
+bin/
+src/lex.yy.c
+src/parser.tab.c
+src/parser.tab.h
+*.exe
+*.o
+*.obj
+.DS_Store
