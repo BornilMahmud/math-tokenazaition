@@ -1,0 +1,20 @@
+sum of 5 and 3
+difference between 10 and 4
+product of 7 and 6
+quotient of 20 and 5
+add 12 and 8
+subtract 15 and 9
+multiply 9 and 3
+divide 18 by 2
+sum of 5 and 3 multiplied by 2
+difference between 50 and 5 divided by 5
+product of 4 and 3 add 2
+quotient of 100 and 4 subtract 10
+add 8 and 2 multiply 5
+divide 36 by 6 add 1
+multiply 7 with 6 then add 2
+divide 10 by 2 then multiply 3
+sum of 100 and 250
+difference between 999 and 111
+product of 11 and 11
+quotient of 144 and 12

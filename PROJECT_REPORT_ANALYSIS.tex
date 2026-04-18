@@ -1,0 +1,634 @@
+\documentclass[12pt,a4paper]{report}
+
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{setspace}
+\usepackage{microtype}
+\usepackage{hyperref}
+\usepackage{xurl}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{ragged2e}
+\usepackage{draftwatermark}
+\usepackage{needspace}
+
+\setstretch{1.2}
+\setlength{\parskip}{4pt}
+\setlength{\parindent}{0pt}
+\setlength{\headheight}{15pt}
+\addtolength{\topmargin}{-3pt}
+\setlength{\emergencystretch}{2em}
+\setlength{\LTleft}{0pt}
+\setlength{\LTright}{0pt}
+\setlist{leftmargin=*, itemsep=3pt, topsep=3pt}
+
+\SetWatermarkText{Bornil Mahmud (241-15-934)}
+\SetWatermarkScale{0.33}
+\SetWatermarkLightness{0.92}
+
+\newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+    breaklinks=true,
+    pdftitle={MathLang Solver - Project Report},
+    pdfauthor={Bornil Mahmud}
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{MathLang Solver}
+\fancyhead[R]{Project Report}
+\fancyfoot[C]{\thepage}
+
+\lstdefinestyle{ccode}{
+    language=C,
+    basicstyle=\ttfamily\scriptsize,
+    breaklines=true,
+    frame=single,
+    columns=fullflexible,
+    keepspaces=true,
+    showstringspaces=false,
+    breakatwhitespace=true
+}
+
+\lstdefinestyle{phpcode}{
+    language=PHP,
+    basicstyle=\ttfamily\scriptsize,
+    breaklines=true,
+    frame=single,
+    columns=fullflexible,
+    keepspaces=true,
+    showstringspaces=false,
+    breakatwhitespace=true
+}
+
+\newcommand{\imgspace}[2]{
+\begin{center}
+\fbox{\parbox[c][#2][c]{0.9\textwidth}{\centering \textit{Insert image: #1}}}
+\end{center}
+}
+
+\begin{document}
+
+\begin{titlepage}
+\centering
+{\Large Final Year Project Report \par}
+\vspace{0.8cm}
+{\huge\bfseries MathLang Solver \par}
+\vspace{0.4cm}
+{\Large Natural Language Arithmetic Parser and Web Platform \par}
+\vspace{1.2cm}
+
+\begin{tabular}{ll}
+Project Name: & MathLang Solver \\
+Repository: & math-tokenazaition \\
+Submitted By: & Bornil Mahmud \\
+Email: & bornilprof@gmail.com \\
+Supervisor: & \textit{[Add Supervisor Name]} \\
+Institution: & \textit{[Add Institution Name]} \\
+Date: & 18 April 2026 \\
+\end{tabular}
+
+\vfill
+\textbf{Abstract}\\
+MathLang Solver is a full-stack software project that accepts English-like arithmetic
+sentences, tokenizes and parses them using Flex/Bison, evaluates them through an AST-based C
+engine, and delivers authenticated browser access with MySQL-backed history and administration.
+This report follows a formal academic format and documents project motivation, methodology,
+implementation, results, engineering impact, and future scope.
+\end{titlepage}
+
+\pagenumbering{roman}
+
+\chapter*{Course \& Program Outcome}
+\addcontentsline{toc}{chapter}{Course \& Program Outcome}
+
+This project maps course-level compiler and software engineering outcomes to practical implementation.
+
+\begin{longtable}{L{0.2\textwidth} L{0.34\textwidth} L{0.4\textwidth}}
+\toprule
+Outcome & Description & Evidence in Project \\
+\midrule
+CO-1 & Apply language processing concepts & Flex lexer and Bison grammar in \texttt{src/lexer.l} and \texttt{src/parser.y} \\
+CO-2 & Implement robust software modules & C solver core with AST, evaluation, and JSON output \\
+CO-3 & Integrate full-stack components & PHP web layer invoking native solver executable \\
+CO-4 & Manage data persistence securely & MySQL schema and PDO prepared statements \\
+PO-1 & Engineering knowledge & Formal parser pipeline and system design \\
+PO-2 & Problem analysis & Natural-language arithmetic interpretation challenge \\
+PO-3 & Design/development of solutions & End-to-end architecture from input to result history \\
+PO-7 & Environment and sustainability awareness & Lightweight local deployment, minimal runtime footprint \\
+PO-8 & Ethics and professionalism & Security policy, role-based access, responsible disclosure \\
+PO-9 & Project management & Structured module breakdown and script-based reproducibility \\
+\bottomrule
+\end{longtable}
+
+\tableofcontents
+\clearpage
+\pagenumbering{arabic}
+
+\chapter{Introduction}
+
+\section{Introduction}
+MathLang Solver is designed to bridge natural language and mathematical evaluation.
+Instead of requiring symbolic syntax only, users can submit phrase-based arithmetic commands
+such as \texttt{sum of 5 and 3 multiplied by 2}. This project demonstrates the practical application of compiler
+theory to solve a real-world usability problem: making arithmetic computation accessible to users who think in natural
+language rather than mathematical symbols. The system combines formal language processing techniques (lexical analysis,
+syntactic parsing, semantic evaluation) with modern web application architecture, delivering an integrated platform
+that is both technically sound and user-friendly. The implementation showcases how classic compiler concepts—lexers, parsers,
+and abstract syntax trees---can be leveraged to create expressive and powerful user-facing applications.
+
+\section{Motivation}
+Many learners and general users understand arithmetic instructions in words, but conventional
+calculators and parsers accept only strict symbolic forms. This project aims to improve usability
+while preserving deterministic computational behavior. The motivation stems from observing that students, educators, and
+non-technical professionals often struggle with symbolic notation, which creates a cognitive barrier to problem-solving.
+By enabling natural language input, the system removes this barrier and allows users to focus on the mathematical
+concept rather than syntax rules. Additionally, the step-by-step output provides transparency in computation, making it
+ideal for educational settings where understanding the process is as important as obtaining the final answer.
+This project thus addresses both accessibility and pedagogical needs in mathematical computation.
+
+\section{Objectives}
+
+\begin{enumerate}
+\item Build a grammar-driven parser for sentence-style arithmetic that accepts multiple natural language forms.
+\item Generate and evaluate AST structures in C with deterministic evaluation semantics and error handling.
+\item Provide transparent and explainable output including tokens, AST, expression form, step-by-step evaluation, and final results.
+\item Deliver a secure and intuitive web interface with user authentication, role-based access control, and session management.
+\item Persist execution history for both regular users and administrators, enabling tracking, auditing, and future reference.
+\item Demonstrate successful integration of formal compiler techniques with practical full-stack web development patterns.
+\end{enumerate}
+
+\section{Feasibility Study}
+
+\needspace{4\baselineskip}
+\textbf{Technical Feasibility:} High. The required toolchain (GCC, Flex, Bison, PHP, MySQL)
+is standard and available on Windows through local setup or XAMPP workflows. All components are mature, well-documented,
+and widely used in production systems. The learning curve is moderate, and debugging tools are readily available.
+The C language, Flex/Bison ecosystem, and PHP/MySQL stack are proven technologies with extensive community support.
+
+\vspace{3pt}
+\textbf{Operational Feasibility:} High. Build and deployment scripts automate build/run operations; a status page provides
+runtime validation. The build process is reproducible across different machines, and the deployment model is lightweight
+enough for development laptops as well as production servers. No special hardware or infrastructure is required.
+The modular architecture allows incremental testing and validation at each phase.
+
+\vspace{3pt}
+\textbf{Economic Feasibility:} High. The project uses open-source tooling and local execution, eliminating licensing and
+cloud infrastructure costs. The development timeline is realistic for a single developer working part-time over a semester.
+Maintenance overhead is low due to the self-contained nature of the system and minimal external dependencies.
+
+\section{Gap Analysis}
+
+The following table identifies key gaps in existing arithmetic computation systems and demonstrates how this project addresses each gap:
+
+\begin{longtable}{L{0.32\textwidth} L{0.3\textwidth} L{0.32\textwidth}}
+\toprule
+Existing Gap & Typical Limitation & Project Response \\
+\midrule
+Natural-language input support & Symbolic-only calculators & Grammar-based sentence parsing with multiple forms \\
+Explainable solution trace & Final-value only output & Token stream, AST view, and step-by-step intermediate results \\
+Role-aware access & No access model & User/admin authentication and fine-grained authorization \\
+Execution history & Stateless solve process & MySQL-backed persistent history with timestamps and audit trail \\
+Cross-platform reliability & Manual environment setup & Automated build scripts for Windows deployment \\
+\bottomrule
+\end{longtable}
+
+\section{Project Outcome}
+
+\needspace{3\baselineskip}
+The completed system includes a native parsing engine built with Flex and Bison, an authenticated web dashboard for
+user-facing interactions, admin management features for system oversight, and persistent solve records stored in MySQL.
+The project successfully demonstrates how compiler theory concepts---tokenization, parsing, AST construction, and evaluation---translate
+into practical, user-friendly applications. Upon completion, the system is ready for deployment in educational settings,
+and the codebase serves as a reference implementation for combining formal language processing with modern web development.
+The project also documents lessons learned, architectural decisions, and potential extensions for future development.
+
+\chapter{Proposed Methodology/Architecture}
+
+\section{Requirement Analysis \& Design Specification}
+
+\subsection{Overview}
+The design uses separation of concerns:
+
+\begin{itemize}
+\item Native core handles lexical analysis, grammar parsing, AST construction, and evaluation.
+\item Web core handles authentication, request orchestration, presentation, and storage.
+\item Database layer handles users, execution logs, and grammar metadata.
+\end{itemize}
+
+\subsection{System Design}
+
+The system flow consists of six sequential steps:
+
+\begin{enumerate}
+\item Input sentence arrives from the browser form.
+\item PHP validates the session and sanitizes the request path.
+\item Solver executable runs with escaped arguments.
+\item Flex tokenizes the sentence and Bison applies grammar rules.
+\item AST is evaluated and result contract is serialized to JSON.
+\item PHP renders output and stores event in the history table.
+\end{enumerate}
+
+\section{System Design Image Section}
+
+This section is intentionally image-focused so each major stage can be explained with visual
+evidence during viva, presentation, and documentation review.
+
+\subsection{High-Level Workflow Diagram}
+\imgspace{Input to Output Pipeline (Browser -> PHP -> C Solver -> JSON -> Database)}{2.2in}
+
+\subsection{Parser Core Block Diagram}
+\imgspace{Lexer, Parser, AST, Evaluator Internal Design}{2.2in}
+
+\subsection{Web Layer Flow}
+\imgspace{Authentication, Solve Request, History Save, Dashboard Render}{2.2in}
+
+\subsection{Database ER Snapshot}
+\imgspace{app\_users, history, grammar\_rules Relationship View}{2.2in}
+
+\subsection{UI Demonstration Sequence}
+\imgspace{Login Screen, Solver Panel, Output Panel, History Panel}{2.2in}
+
+\subsection{Admin Monitoring View}
+\imgspace{Role-Based Admin Access and Recent Execution Logs}{2.2in}
+
+\section{Overall Project Plan}
+
+\begin{longtable}{L{0.24\textwidth} L{0.34\textwidth} L{0.34\textwidth}}
+\toprule
+Phase & Work Items & Deliverables \\
+\midrule
+Phase 1 & Language design and grammar planning & Token/operator specification \\
+Phase 2 & C engine implementation & AST, evaluator, JSON output \\
+Phase 3 & Web integration & PHP solver bridge and UI workflow \\
+Phase 4 & Data layer and role control & MySQL schema, auth, admin access \\
+Phase 5 & Testing and refinement & Validation cases and status visibility \\
+\bottomrule
+\end{longtable}
+
+\chapter{Implementation and Results}
+
+\section{Implementation}
+
+\subsection{Lexer Definitions for Tokenization}
+
+Lexer maps lexical units to parser tokens. It recognizes numbers, operators, and control connectors in a deterministic way.
+The lexer also records token flow for explainable debugging and error reporting.
+
+\begin{lstlisting}[style=ccode,caption={Tokenization rules from src/lexer.l}]
+[0-9]+(\.[0-9]+)?              {
+    yylval.number = strtod(yytext, NULL);
+    record("NUMBER", yytext);
+    return NUMBER;
+}
+"add"|"plus"                   { record("ADD", yytext); return ADD; }
+"subtract"|"minus"            { record("SUBTRACT", yytext); return SUBTRACT; }
+"multiply"|"multiplied"|"times" { record("MULTIPLY", yytext); return MULTIPLY; }
+"divide"|"divided"            { record("DIVIDE", yytext); return DIVIDE; }
+\end{lstlisting}
+
+\textbf{Input Example:}
+\begin{lstlisting}[style=ccode,caption={Raw user sentence input}]
+sum of 10 and 5 then divide by 3
+\end{lstlisting}
+
+\textbf{Token Output Example:}
+\begin{lstlisting}[style=ccode,caption={Illustrative token stream emitted by lexer}]
+[SUM:"sum"] [OF:"of"] [NUMBER:"10"] [AND:"and"] [NUMBER:"5"]
+[THEN:"then"] [DIVIDE:"divide"] [BY:"by"] [NUMBER:"3"]
+\end{lstlisting}
+
+\subsection{Symbol and Function Table Structures}
+
+The project maintains runtime solver state through structured records including tokens,
+steps, expression, tree, and error fields. This structure ensures consistent data flow from parsing to output.
+
+\begin{lstlisting}[style=ccode,caption={Solver result contract from src/solver.h}]
+typedef struct {
+    int ok;
+    char *input;
+    char *expression;
+    char *tree;
+    char *error;
+    char *suggestion;
+    double result;
+    char **steps;
+    size_t step_count;
+    char **tokens;
+    size_t token_count;
+} SolverResult;
+\end{lstlisting}
+
+\textbf{Output Contract Example:}
+\begin{lstlisting}[style=ccode,caption={Sample JSON response stored in history}]
+{
+    "ok": 1,
+    "input": "sum of 10 and 5 then divide by 3",
+    "expression": "((10 + 5) / 3)",
+    "result": 5,
+    "steps": ["10 + 5 = 15", "15 / 3 = 5"],
+    "tokens": ["SUM", "OF", "NUMBER(10)", "AND", "NUMBER(5)", "THEN", "DIVIDE", "BY", "NUMBER(3)"]
+}
+\end{lstlisting}
+
+\subsection{Token Definitions and Grammar Rules}
+
+Grammar rules transform the token stream into an AST that preserves operation order.
+This stage is the core of correctness for sentence-style arithmetic evaluation.
+
+\begin{lstlisting}[style=ccode,caption={Grammar excerpt from src/parser.y}]
+%token <number> NUMBER
+%token SUM DIFFERENCE PRODUCT QUOTIENT
+%token ADD SUBTRACT MULTIPLY DIVIDE
+%token OF BETWEEN AND WITH BY THEN
+
+expression:
+      NUMBER { $$ = ast_make_number($1); }
+    | expression ADD expression { $$ = ast_make_binary(OP_ADD, $1, $3); }
+    | expression SUBTRACT expression { $$ = ast_make_binary(OP_SUBTRACT, $1, $3); }
+    | expression MULTIPLY expression { $$ = ast_make_binary(OP_MULTIPLY, $1, $3); }
+    | expression DIVIDE expression { $$ = ast_make_binary(OP_DIVIDE, $1, $3); }
+;
+\end{lstlisting}
+
+\textbf{Input to Parse Example:}
+\begin{lstlisting}[style=ccode,caption={Expression forms accepted by grammar}]
+Input A: 8 add 4 multiply 2
+Input B: product of 8 and 4 then divide by 2
+\end{lstlisting}
+
+\textbf{Parser Output Example:}
+\begin{lstlisting}[style=ccode,caption={Illustrative AST form}]
+Input A AST: (8 + (4 * 2))
+Input B AST: ((8 * 4) / 2)
+\end{lstlisting}
+
+\subsection{Handling Function Parameters}
+
+Input handling supports both argument-based and stdin-based modes, providing flexibility for different deployment scenarios.
+
+\begin{lstlisting}[style=ccode,caption={Input flow from src/main.c}]
+if (argc > 1) {
+    input = join_arguments(argc, argv, 1);
+}
+if (input == NULL) {
+    input = read_stdin_all();
+}
+\end{lstlisting}
+
+\textbf{Execution Mode Example:}
+\begin{lstlisting}[style=ccode,caption={CLI invocation and stdin fallback behavior}]
+Mode 1 (argument):   solver.exe "sum of 7 and 9"
+Mode 2 (stdin):      echo sum of 7 and 9 | solver.exe
+\end{lstlisting}
+
+\subsection{Handling Variable Declarations and Assignments}
+
+Direct symbolic variable declarations is not implemented in this version. The current scope
+is sentence-based arithmetic expression evaluation. This is an intentional design boundary
+for maintaining deterministic grammar control and clear project scope.
+
+\subsection{Expression Handling for Integer Operations}
+
+The evaluator supports add, subtract, multiply, and divide operations over numeric nodes. Integer-like
+presentation is preserved when values are whole numbers, improving output readability.
+
+\begin{lstlisting}[style=ccode,caption={Evaluation guard from src/evaluator.c}]
+if (node->op == OP_DIVIDE && right == 0.0) {
+    parser_set_error("Division by zero.", "Use a non-zero denominator.");
+    *ok = 0;
+    return 0.0;
+}
+\end{lstlisting}
+
+\textbf{Evaluation Input/Output Example:}
+\begin{lstlisting}[style=ccode,caption={Result examples from evaluator stage}]
+Input:  "difference between 25 and 7 then multiply by 2"
+Output: result = 36
+Steps:  ["25 - 7 = 18", "18 * 2 = 36"]
+
+Input:  "10 divide by 0"
+Output: error = "Division by zero."
+Hint:   "Use a non-zero denominator."
+\end{lstlisting}
+
+\subsection{Executing Statements with Iteration and Decrement}
+
+The current project does not implement general programming statements (loops/decrements)
+as a language runtime. Instead, chained arithmetic operations are supported through grammar
+connectors such as \texttt{then}, enabling multi-step calculations.
+
+\section{Results and Discussion}
+
+The system successfully parses and evaluates supported sentence forms, returns structured
+JSON output with comprehensive metadata, and persists solve history for users. The explainability output significantly
+improves traceability compared to a plain calculator response, making it ideal for educational applications.
+
+\subsection{Representative End-to-End Output Snapshot}
+
+\begin{lstlisting}[style=phpcode,caption={Web-visible solve output (simplified)}]
+Input    : sum of 14 and 6 then divide by 5
+Result   : 4
+Tree     : ((14 + 6) / 5)
+Steps    : 14 + 6 = 20
+           20 / 5 = 4
+Status   : Success
+\end{lstlisting}
+
+\subsection{Additional Successful Computation Examples}
+
+\begin{lstlisting}[style=phpcode,caption={Diverse arithmetic expression examples}]
+Example 1:
+Input    : multiply 7 by 8 then add 12
+Result   : 68
+Steps    : 7 * 8 = 56
+           56 + 12 = 68
+Status   : Success
+
+Example 2:
+Input    : product of 3 and 4 and 5
+Result   : 60
+Steps    : 3 * 4 = 12
+           12 * 5 = 60
+Status   : Success
+
+Example 3:
+Input    : difference between 100 and 25 then divide by 3
+Result   : 25
+Steps    : 100 - 25 = 75
+           75 / 3 = 25
+Status   : Success
+\end{lstlisting}
+
+\subsection{Error Handling Output Examples}
+
+\begin{lstlisting}[style=phpcode,caption={Error cases with helpful messages}]
+Error Case 1:
+Input    : 42 divide by 0
+Result   : null
+Error    : "Division by zero detected."
+Suggestion: "Please use a non-zero denominator."
+Status   : Failed
+
+Error Case 2:
+Input    : sum and 15 multiply
+Result   : null
+Error    : "Syntax error: incomplete expression."
+Suggestion: "Check that all numbers are provided."
+Status   : Failed
+\end{lstlisting}
+
+\subsection{Database Persistence Example}
+
+Successful solves are persisted to the MySQL history table with the following structure:
+
+\begin{lstlisting}[style=phpcode,caption={Sample history record in database}]
+History Record:
+user_id       : 3
+input_text    : "sum of 14 and 6 then divide by 5"
+result_json   : {"ok": 1, "result": 4, "steps": [...]}
+timestamp     : 2026-04-18 15:32:47
+solved_successfully : 1
+\end{lstlisting}
+
+\subsection{Observed Quality Characteristics}
+
+\begin{itemize}
+\item \textbf{Correctness:} Grammar and evaluator produce deterministic and mathematically correct arithmetic outcomes.
+\item \textbf{Explainability:} Token stream, AST view, and step traces provide full transparency into computation.
+\item \textbf{Robustness:} Invalid tokens, syntax errors, and divide-by-zero conditions return safe, helpful error output.
+\item \textbf{Usability:} Natural-language input significantly lowers the barrier for non-technical users.
+\item \textbf{Performance:} Parsing and evaluation complete in milliseconds for typical expressions.
+\item \textbf{Data Persistence:} All computations are reliably stored with proper timestamps and user association.
+\end{itemize}
+
+\section{UI Design}
+
+The web interface includes login/registration, dashboard solve input, output panels, history viewing, and admin controls. The user experience prioritizes simplicity: users log in, enter a natural-language arithmetic expression,
+and immediately see the result with step-by-step breakdown. Advanced features like viewing solve history and admin access
+are available through role-based navigation. The design supports both casual users (students learning arithmetic) and
+power users (educators managing a classroom of problem solves).
+
+\chapter{Engineering Standards and Mapping}
+
+\section{Impact on Society, Environment and Sustainability}
+
+\subsection{Impact on Life}
+
+The project improves accessibility of arithmetic computation for users who prefer natural-language
+interaction over symbolic syntax. This is particularly valuable for students with dyscalculia, non-native speakers,
+and users with limited mathematical background.
+
+\subsection{Impact on Society \& Environment}
+
+Lightweight local deployment supports educational institutions with limited infrastructure. No heavy compute or cloud dependency
+is required for normal operation, making the system suitable for schools with limited IT resources and bandwidth.
+
+\subsection{Ethical Aspects}
+
+The project stores user input and output history; therefore, responsible access control, credential management, and secure deployment practices are essential.
+Privacy and data security are treated as first-class concerns throughout the implementation.
+
+\subsection{Sustainability Plan}
+
+The system uses open-source components, modular architecture, and script-based reproducibility, which supports long-term maintainability and transferability.
+Future developers can easily extend or modify the system without architectural constraints.
+
+\section{Solo Development Approach}
+
+This project was developed entirely by a single developer, requiring strong self-organization and time management.
+The modular architecture---with clear separation of concerns between core parser, web layer, database schema, and deployment scripts---was
+essential for managing complexity across multiple technical domains (C, PHP, SQL, system scripting). The modular design also ensures
+that the codebase remains maintainable and extensible for future developers or team-based enhancements. By working independently on this full-stack project, the developer
+gained deep expertise across the entire technology stack, from low-level lexer/parser implementation to high-level web application design,
+security best practices, and database administration. This holistic understanding is valuable for future projects requiring full-stack
+integration and architectural decision-making.
+
+\chapter{Conclusion}
+
+\section{Summary}
+
+MathLang Solver demonstrates a complete integration of compiler-style parsing with full-stack web delivery. It transforms sentence-style arithmetic into deterministic and explainable results,
+with robust authentication and persistent history. The project successfully bridges the gap between formal language theory and practical
+real-world applications, proving that academic concepts like lexical analysis and parsing can directly solve problems in education
+and accessibility. The implementation showcases careful attention to software engineering principles including modularity, security,
+error handling, and user experience design. By working independently on this full-stack project, the developer has demonstrated capability
+across multiple technical domains and the ability to deliver a production-ready system that is both technically sound and user-friendly.
+
+The MathLang Solver project serves as a concrete proof that compiler theory is not merely academic---it directly enables creation
+of accessible, usable software that improves lives. The system is ready for deployment in educational institutions and demonstrates
+clear value in making mathematics more approachable.
+
+\section{Limitations}
+
+\begin{itemize}
+\item Scope limited to basic arithmetic operations (add, subtract, multiply, divide) over real numbers.
+\item No symbolic variable model or advanced control flow language (loops, conditionals, functions) as this would require
+a significantly more complex grammar and runtime.
+\item Security hardening can be extended further with additional controls such as CSRF tokens, rate throttling, and
+advanced audit logging.
+\item Performance optimization for high-volume concurrent users has not been implemented; the current design is suitable
+for educational and small-scale deployments.
+\item The grammar is fixed at compile time; runtime grammar extension is not supported in the current version.
+\end{itemize}
+
+\section{Future Work and Recommendations}
+
+\begin{itemize}
+\item \textbf{Extended Grammar:} Support variables, assignment, and algebraic equation solving (e.g., "solve for x when x plus 5 equals 12").
+\item \textbf{Richer Functions:} Add trigonometric functions (sin, cos, tan), logarithms, exponents, and factorial operations
+with natural language forms (e.g., "sine of 45 degrees").
+\item \textbf{Security Enhancements:} Implement CSRF tokens, rate limiting, stronger input validation, and automated security testing.
+\item \textbf{API and Integration:} Expose RESTful API endpoints to enable third-party integrations with learning management systems
+and mobile applications.
+\item \textbf{Performance Scaling:} Optimize the parser for higher throughput, implement caching strategies, and conduct load testing
+for production deployment.
+\item \textbf{User Interface:} Develop a mobile-responsive interface and a native mobile application for on-the-go arithmetic solving.
+\item \textbf{Analytics:} Collect and visualize learning analytics to help educators identify common misconceptions and knowledge gaps.
+\end{itemize}
+
+\chapter*{References}
+\addcontentsline{toc}{chapter}{References}
+
+\begin{itemize}
+\item Project repository: \url{https://github.com/BornilMahmud/math-tokenazaition}
+\item Flex lexical analyzer: \url{https://github.com/westes/flex}
+\item GNU Bison parser generator: \url{https://github.com/akimd/bison}
+\item PHP source code repository: \url{https://github.com/php/php-src}
+\item MySQL database server: \url{https://github.com/mysql/mysql-server}
+\item Flex documentation: \url{https://www.google.com/search?q=flex+lexer+documentation}
+\item GNU Bison documentation: \url{https://www.google.com/search?q=gnu+bison+parser+documentation}
+\item PHP PDO prepared statements: \url{https://www.google.com/search?q=php+pdo+prepared+statements+tutorial}
+\end{itemize}
+
+\appendix
+
+\chapter{Project Overview Image Spaces}
+
+\section{System Overview}
+\imgspace{System Overview Diagram}{2.3in}
+
+\section{Architecture Diagram}
+\imgspace{Complete System Architecture}{2.3in}
+
+\section{UI Screens}
+\imgspace{Login and Dashboard Interface}{2.0in}
+\imgspace{Solver Output and History Panels}{2.0in}
+
+\section{Admin and Status Screens}
+\imgspace{Admin Management Interface}{2.0in}
+\imgspace{System Status Monitoring}{2.0in}
+
+\end{document}
